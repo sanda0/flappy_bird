@@ -16,11 +16,39 @@ local canAddPipe = 0
 local isStrat = false
 local score = 0
 
+--groups
+local gMain = display.newGroup()
+
+local gWorld = display.newGroup()
+gMain:insert(gWorld)
+
+local gHud = display.newGroup()
+gMain:insert(gHud)
+
+
+--bgs
+local bgs ={}
+local b1 = display.newImageRect(gWorld,"background.png",_W,_H)
+b1.x = _CX
+b1.y = _CY
+bgs[#bgs+1] = b1
+
+local b2 = display.newImageRect(gWorld,"background.png",_W,_H)
+b2.x = _CX + _W
+b2.y = _CY
+bgs[#bgs+1] = b2
+
+local b3 = display.newImageRect(gWorld,"background.png",_W,_H)
+b3.x = _CX +(_W*2)
+b3.y = _CY
+bgs[#bgs+1] = b3
 
 --score_label
 local scoreL = display.newText("0p",_CX,80,"font.ttf",40)
+scoreL.fill = {0,0,0}
+gHud:insert(scoreL)
 --bird
-local bird = display.newImageRect("flappy.png",25,20)
+local bird = display.newImageRect(gWorld,"flappy.png",25,20)
 bird.x = 100
 bird.y = _CY
 bird.velocity = 0
@@ -39,20 +67,20 @@ local function addPipe()
     local destanceBetween = math.random(180,220)
     local yPosition = math.random(150,_H-150)
 
-    local pTop = display.newImageRect("pipe.png",50,600)
+    local pTop = display.newImageRect(gWorld,"pipe.png",50,600)
     pTop.x = _W+50
     pTop.y = yPosition-(destanceBetween/2)-300
     pTop.rotation = 180 -- rotate 180
     pTop.type = "pipe"
     pipes[#pipes+1] = pTop
 
-    local pBottom = display.newImageRect("pipe.png",50,600)
+    local pBottom = display.newImageRect(gWorld,"pipe.png",50,600)
     pBottom.x = _W+50
     pBottom.y = yPosition+(destanceBetween/2)+300
     pBottom.type = "pipe"
     pipes[#pipes+1] = pBottom
 
-    local pSensor = display.newRect(_W+80,_CY,5,_H)
+    local pSensor = display.newRect(gWorld,_W+80,_CY,5,_H)
     pSensor.fill = {0,1,0}
     pSensor.type = "sensor"
     pSensor.alpha = 0
@@ -73,12 +101,20 @@ local function checkCollision(obj1, obj2)
     return (left or right) and (up or down)
 end
 
-
+print(_W)
 --
 --update
 local function update()
     if isStrat and bird.crashed==false then
         
+        for i=#bgs,1,-1 do
+            local bg_obj = bgs[i]
+            bg_obj:translate(-1,0)
+
+            if bg_obj.x < (_W/2)-360 then
+                bg_obj.x = bg_obj.x+(_W*3)
+            end
+        end
     
         for i=#pipes,1,-1 do 
             local object = pipes[i]
