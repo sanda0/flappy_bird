@@ -49,7 +49,7 @@ function scene:create( event )
   high_score.fill = {0,0,1}
   gMain:insert(high_score)
   --restat
-  local restart = display.newText("Restat",_CX,_CY+85,"font.ttf","22")
+  local restart = display.newText("Restart",_CX,_CY+85,"font.ttf","22")
   restart.fill = {1,1,0}
   gMain:insert(restart)
   --
