@@ -1,42 +1,63 @@
--- -----------------------------------------------------------------------------------
--- Import
--- -----------------------------------------------------------------------------------
-local composer = require("composer")
+
 local relayout = require("relayout")
 local utilities = require("utilities")
 
-
-
--- -----------------------------------------------------------------------------------
--- Set variables
--- -----------------------------------------------------------------------------------
-
--- Layout
-local _W, _H, _CX, _CY = relayout._W, relayout._H, relayout._CX, relayout._CY
-
--- Scene
-local scene = composer.newScene()
-
---sounds
-local souFlap = audio.loadStream("flap.wav")
-local souCrash = audio.loadStream("crash.wav")
-local souScore = audio.loadStream("score.mp3")
-
--- Groups
-local gMain
-local gWorld
-local gHud
+---layout
+--
+local _W,_H,_CX,_CY = relayout._W,relayout._H,relayout._CX,relayout._CY
 
 --varibles
 local pipes = {}
 local canAddPipe = 0
 local isStrat = false
 local score = 0
-local bgs ={}
-local bird
-local scoreL
 
---functions
+--groups
+local gMain = display.newGroup()
+
+local gWorld = display.newGroup()
+gMain:insert(gWorld)
+
+local gHud = display.newGroup()
+gMain:insert(gHud)
+
+
+--bgs
+local bgs ={}
+local b1 = display.newImageRect(gWorld,"background.png",_W,_H)
+b1.x = _CX
+b1.y = _CY
+bgs[#bgs+1] = b1
+
+local b2 = display.newImageRect(gWorld,"background.png",_W,_H)
+b2.x = _CX + _W
+b2.y = _CY
+bgs[#bgs+1] = b2
+
+local b3 = display.newImageRect(gWorld,"background.png",_W,_H)
+b3.x = _CX +(_W*2)
+b3.y = _CY
+bgs[#bgs+1] = b3
+
+--score_label
+local scoreL = display.newText("0p",_CX,80,"font.ttf",40)
+scoreL.fill = {0,0,0}
+gHud:insert(scoreL)
+--bird
+local bird = display.newImageRect(gWorld,"flappy.png",25,20)
+bird.x = 100
+bird.y = _CY
+bird.velocity = 0
+bird.gravity = 0
+bird.crashed = false
+
+
+
+--sounds
+local souFlap = audio.loadStream("flap.wav")
+local souCrash = audio.loadStream("crash.wav")
+local souScore = audio.loadStream("score.mp3")
+
 --add pipe
 local function addPipe()
     local destanceBetween = math.random(180,220)
@@ -64,16 +85,6 @@ local function addPipe()
 
 end
 
---touch
-local function touch(event)
-    if event.phase == "began" then
-        isStrat = true
-        bird.velocity = 10
-        audio.play(souFlap)
-    end
-end
-
-
 -- chack collision
 --
 local function checkCollision(obj1, obj2)
@@ -86,7 +97,7 @@ local function checkCollision(obj1, obj2)
     return (left or right) and (up or down)
 end
 
--- print(_W)
+print(_W)
 --
 --update
 local function update()
@@ -132,9 +143,7 @@ local function update()
                 else
                     audio.play(souCrash)
                     -- print("diieee!!!")
-                    transition.to(bird,{time=200,y=_H -30,onComplete=function()
-                        composer.gotoScene("scenes.gameover")
-                    end})
+                    transition.to(bird,{time=200,y=_H -30})
                     bird.crashed = true
 
                     utilities:setHighScore(score)
@@ -163,9 +172,7 @@ local function update()
             -- bird.gravity = 0
             -- print("dieee")
             audio.play(souCrash)
-            transition.to(bird,{time=200,y=_H -30,onComplete=function()
-                composer.gotoScene("scenes.gameover")
-            end})
+            transition.to(bird,{time=200,y=_H -30})
             bird.crashed = true
 
             utilities:setHighScore(score)
@@ -177,96 +184,15 @@ local function update()
     end
 end
 
--- -----------------------------------------------------------------------------------
--- Scene event functions
--- -----------------------------------------------------------------------------------
+Runtime:addEventListener("enterFrame",update)
 
--- create()
-function scene:create( event )
-  print("scene:create - game")
-
-    -- Create main group and insert to scene
-    gMain = display.newGroup()
-    self.view:insert(gMain)
-    -- Insert objects to grpMain here
-    gWorld = display.newGroup()
-    gMain:insert(gWorld)
-
-    gHud = display.newGroup()
-    gMain:insert(gHud)
-
-    --bgs
-    local b1 = display.newImageRect(gWorld,"background.png",_W,_H)
-    b1.x = _CX
-    b1.y = _CY
-    bgs[#bgs+1] = b1
-
-    local b2 = display.newImageRect(gWorld,"background.png",_W,_H)
-    b2.x = _CX + _W
-    b2.y = _CY
-    bgs[#bgs+1] = b2
-
-    local b3 = display.newImageRect(gWorld,"background.png",_W,_H)
-    b3.x = _CX +(_W*2)
-    b3.y = _CY
-    bgs[#bgs+1] = b3
-
-    --bird
-    bird = display.newImageRect(gWorld,"flappy.png",25,20)
-    bird.x = 100
-    bird.y = _CY
-    bird.velocity = 0
-    bird.gravity = 0
-    bird.crashed = false
-
-    --score lable
-    scoreL = display.newText("0p",_CX,80,"font.ttf",40)
-    scoreL.fill = {0,0,0}
-    gHud:insert(scoreL)
-
-    --event listeners
-    Runtime:addEventListener("enterFrame",update)
-    Runtime:addEventListener("touch",touch)
-
+--
+--touch
+local function touch(event)
+    if event.phase == "began" then
+        isStrat = true
+        bird.velocity = 10
+        audio.play(souFlap)
+    end
 end
-
-
-
--- show()
-function scene:show( event )
-  if ( event.phase == "will" ) then
-  elseif ( event.phase == "did" ) then
-  end
-end
-
-
-
--- hide()
-function scene:hide( event )
-  if ( event.phase == "will" ) then
-  elseif ( event.phase == "did" ) then
-  end
-end
-
-
-
--- destroy()
-function scene:destroy(event)
-  if event.phase == "will" then
-    Runtime:removeEventListener("enterFrame",update)
-    Runtime:removeEventListener("touch",touch)
-  end
-end
-
-
-
--- -----------------------------------------------------------------------------------
--- Scene event function listeners
--- -----------------------------------------------------------------------------------
-scene:addEventListener( "create", scene )
-scene:addEventListener( "show", scene )
-scene:addEventListener( "hide", scene )
-scene:addEventListener( "destroy", scene )
--- -----------------------------------------------------------------------------------
-
-return scene
+Runtime:addEventListener("touch",touch)
